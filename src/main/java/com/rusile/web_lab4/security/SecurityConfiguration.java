@@ -4,6 +4,7 @@ import com.rusile.web_lab4.security.service.JwtAuthenticationEntryPoint;
 import com.rusile.web_lab4.security.service.JwtRequestFilter;
 import com.rusile.web_lab4.security.service.JwtUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,6 +29,9 @@ public class SecurityConfiguration {
     private final JwtUserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtRequestFilter jwtRequestFilter;
+
+    @Value("${client.url}")
+    private String clientUrl;
 
     @Autowired
     public SecurityConfiguration(JwtUserDetailsService userDetailsService,
@@ -63,7 +67,7 @@ public class SecurityConfiguration {
                 .cors().configurationSource(
                         request -> {
                             CorsConfiguration corsConfiguration = new CorsConfiguration().applyPermitDefaultValues();
-                            corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000"));
+                            corsConfiguration.setAllowedOrigins(List.of(clientUrl));
                             corsConfiguration.addAllowedMethod(HttpMethod.DELETE);
                             return corsConfiguration;
                         }
