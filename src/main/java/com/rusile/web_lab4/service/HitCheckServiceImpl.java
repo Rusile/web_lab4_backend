@@ -17,6 +17,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -69,7 +70,11 @@ public class HitCheckServiceImpl implements HitCheckService {
 
         List<HitCheckDTO> result = new ArrayList<>();
 
-        hitEntityList.forEach(p -> result.add(hitEntityToHitCheckDTOConverter.convert(p)));
+        if (radius != null) {
+            hitEntityList.stream().filter(h -> Objects.equals(h.getR(), radius)).forEach(p -> result.add(hitEntityToHitCheckDTOConverter.convert(p)));
+        } else {
+            hitEntityList.forEach(p -> result.add(hitEntityToHitCheckDTOConverter.convert(p)));
+        }
 
         return result;
     }
