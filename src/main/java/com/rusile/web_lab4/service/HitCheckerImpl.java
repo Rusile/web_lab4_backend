@@ -8,16 +8,14 @@ public class HitCheckerImpl implements HitChecker {
 
     @Override
     public boolean checkHit(Coordinates coordinates) {
-        return checkCircle(coordinates) &&
-                checkSquare(coordinates) &&
+        return checkCircle(coordinates) ||
+                checkSquare(coordinates) ||
                 checkTriangle(coordinates);
     }
 
     private boolean checkTriangle(Coordinates coordinates) {
         return coordinates.getX() >= 0 &&
                 coordinates.getY() >=0 &&
-                coordinates.getX() <= coordinates.getR() &&
-                coordinates.getY() <= coordinates.getR() / 2 &&
                 coordinates.getY() <= -0.5 * coordinates.getX() + coordinates.getR() / 2;
     }
 

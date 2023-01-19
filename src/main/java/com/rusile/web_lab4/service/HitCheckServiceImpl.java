@@ -6,13 +6,15 @@ import com.rusile.web_lab4.dao.HitEntity;
 import com.rusile.web_lab4.dao.HitRepo;
 import com.rusile.web_lab4.dao.UserEntity;
 import com.rusile.web_lab4.dao.UserRepo;
-import com.rusile.web_lab4.dto.HitCheckRequest;
+import com.rusile.web_lab4.dto.Coordinates;
 import com.rusile.web_lab4.dto.HitCheckDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -41,20 +43,20 @@ public class HitCheckServiceImpl implements HitCheckService {
 
 
     @Override
-    public void checkHit(HitCheckRequest request, Integer userId) {
+    public void checkHit(HitCheckDTO request, Integer userId) {
         long scriptStartTime = Instant.now().getNano();
 
         HitEntity entity = converter.convert(request);
 
         Optional<UserEntity> userEntityOptional = userRepo.findById(userId);
 
-        boolean checkHitResult = hitChecker.checkHit(request.coordinates());
+        boolean checkHitResult = hitChecker.checkHit(new Coordinates(request.getX(), request.getY(), request.getR()));
 
         entity.setStatus(checkHitResult);
-        entity.setCheckDate(OffsetDateTime.from(Instant.now()));
+        entity.setCheckDate(Instant.now().atOffset(ZoneOffset.UTC));
         entity.setUser(userEntityOptional.get());
 
-        entity.setExecutionTime((Instant.now().getNano() - scriptStartTime) / 1000L);
+        entity.setExecutionTime(Math.abs(Instant.now().getNano() - scriptStartTime) / 10000L);
 
         hitRepo.save(entity);
     }
@@ -73,6 +75,7 @@ public class HitCheckServiceImpl implements HitCheckService {
     }
 
     @Override
+    @Transactional
     public void clearAllByUserId(Integer userId) {
         Optional<UserEntity> userEntity = userRepo.findById(userId);
 
