@@ -1,79 +1,89 @@
-package com.rusile.web_lab4.configuration;
+package com.rusile.web_lab4.security;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.rusile.web_lab4.security.service.JwtAuthenticationEntryPoint;
+import com.rusile.web_lab4.security.service.JwtRequestFilter;
+import com.rusile.web_lab4.security.service.JwtUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class SecurityConfiguration {
 
+    private final JwtUserDetailsService userDetailsService;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtRequestFilter jwtRequestFilter;
 
-    @Value("${conf.login_page_path}")
-    private String loginPagePath;
-
-    public SecurityConfiguration() {
-        super();
+    @Autowired
+    public SecurityConfiguration(JwtUserDetailsService userDetailsService,
+                          JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+                          JwtRequestFilter jwtRequestFilter) {
+        this.userDetailsService = userDetailsService;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.jwtRequestFilter = jwtRequestFilter;
     }
-
-    @Override
-    public void configure(final HttpSecurity http) throws Exception {
-        http.authorizeRequests() // объявляем авторизованные запросчаем статику и страницу авторизации
-                .antMatchers("/auth").permitAll() // исключаем POST-запрос на авторизацию
-                .antMatchers(HttpMethod.PATCH).permitAll()
-                .anyRequest().authenticated() // всё остальное должно быть с авторизацией
-                .and() // добавляем обработчик ошибок авторизации
-                .exceptionHandling()
-                .authenticationEntryPoint(
-                        new AuthenticationEntryPoint() {
-                            @Override
-                            public void commence(
-                                    HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    AuthenticationException exception
-                            ) {
-                                // если ошибка при авторизации (т.е. введен неправильный логин или пароль)
-                                if (exception instanceof BadCredentialsException) {
-                                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                                } else { // если просто открыли защищенный раздел, то редирект на страницу авторизации
-                                    response.setStatus(HttpStatus.FOUND.value());
-                                    response.setHeader(HttpHeaders.LOCATION, request.getContextPath() + loginPagePath);
-                                }
-                            }
-                        }
-                )
-                .and() // сообщаем, что форма авторизации находится по заданному URL
-                .formLogin()
-                .loginPage(loginPagePath)
-                .and() // отключаем CSRF для всех запросов
-                .csrf().disable();
-    }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 
     @Bean
-    public AuthenticationManager authenticationManager() throws Exception {
-        return super.authenticationManager();
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+
+        return authProvider;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .cors().configurationSource(
+                        request -> {
+                            CorsConfiguration corsConfiguration = new CorsConfiguration().applyPermitDefaultValues();
+                            corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000"));
+                            corsConfiguration.addAllowedMethod(HttpMethod.DELETE);
+                            return corsConfiguration;
+                        }
+                )
+                .and()
+                .csrf().disable()
+                .authorizeHttpRequests(auth -> auth
+                        .antMatchers("/api/v1/auth/login",
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/refresh",
+                                "/ping"
+                        ).permitAll()
+                        .anyRequest().authenticated())
+                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        httpSecurity.authenticationProvider(authenticationProvider());
+        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return httpSecurity.build();
     }
 }

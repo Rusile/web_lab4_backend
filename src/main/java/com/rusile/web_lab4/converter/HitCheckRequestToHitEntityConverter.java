@@ -3,8 +3,10 @@ package com.rusile.web_lab4.converter;
 import com.rusile.web_lab4.dao.HitEntity;
 import com.rusile.web_lab4.dto.HitCheckRequest;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.stereotype.Component;
 
-public class HitCheckRequestToHitEntity implements Converter<HitCheckRequest, HitEntity> {
+@Component
+public class HitCheckRequestToHitEntityConverter implements Converter<HitCheckRequest, HitEntity> {
     @Override
     public HitEntity convert(HitCheckRequest request) {
         HitEntity entity = new HitEntity();

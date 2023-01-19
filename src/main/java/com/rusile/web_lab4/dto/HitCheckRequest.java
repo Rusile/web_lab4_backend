@@ -1,7 +1,8 @@
 package com.rusile.web_lab4.dto;
 
-import java.time.LocalDateTime;
+import javax.validation.Valid;
+import java.time.OffsetDateTime;
 
-public record HitCheckRequset(Coordinates coordinates, LocalDateTime time) {
+public record HitCheckRequest(@Valid Coordinates coordinates, OffsetDateTime time) {
 
 }

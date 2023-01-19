@@ -1,9 +1,12 @@
 package com.rusile.web_lab4.dao;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
 
+@Data
 @Entity
 @Table(name = "hits")
 public class HitEntity {
@@ -13,7 +16,7 @@ public class HitEntity {
     private Integer id;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
@@ -31,7 +34,7 @@ public class HitEntity {
 
     @NotNull
     @Column(name = "check_date", nullable = false)
-    private OffsetDateTime checkDate;
+    private OffsetDateTime  checkDate;
 
     @NotNull
     @Column(name = "execution_time", nullable = false)
@@ -40,69 +43,4 @@ public class HitEntity {
     @NotNull
     @Column(name = "status", nullable = false)
     private Boolean status = false;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public UserEntity getUser() {
-        return user;
-    }
-
-    public void setUser(UserEntity user) {
-        this.user = user;
-    }
-
-    public Double getX() {
-        return x;
-    }
-
-    public void setX(Double x) {
-        this.x = x;
-    }
-
-    public Double getY() {
-        return y;
-    }
-
-    public void setY(Double y) {
-        this.y = y;
-    }
-
-    public Double getR() {
-        return r;
-    }
-
-    public void setR(Double r) {
-        this.r = r;
-    }
-
-    public OffsetDateTime getCheckDate() {
-        return checkDate;
-    }
-
-    public void setCheckDate(OffsetDateTime checkDate) {
-        this.checkDate = checkDate;
-    }
-
-    public Long getExecutionTime() {
-        return executionTime;
-    }
-
-    public void setExecutionTime(Long executionTime) {
-        this.executionTime = executionTime;
-    }
-
-    public Boolean getStatus() {
-        return status;
-    }
-
-    public void setStatus(Boolean status) {
-        this.status = status;
-    }
-
 }
