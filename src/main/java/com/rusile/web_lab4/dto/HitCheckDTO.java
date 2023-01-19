@@ -11,7 +11,7 @@ import java.time.Instant;
 @Data
 public class HitCheckDTO {
 
-    private static final int R_MAX_VALUE = 3;
+    private static final int R_MAX_VALUE = 4;
 
     private static final int X_MAX_VALUE = 3;
 
