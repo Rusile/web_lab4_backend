@@ -30,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<HttpStatus> registerUser(@RequestBody @NotNull @Valid UserCredentialsDTO userCredentialsDTO) {
-
+        System.out.println(userCredentialsDTO);
         authService.registerUser(userCredentialsDTO);
 
         return new ResponseEntity<>(HttpStatus.OK);

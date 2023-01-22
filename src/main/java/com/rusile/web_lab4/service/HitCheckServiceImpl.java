@@ -10,10 +10,8 @@ import com.rusile.web_lab4.dto.Coordinates;
 import com.rusile.web_lab4.dto.HitCheckDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +66,8 @@ public class HitCheckServiceImpl implements HitCheckService {
         Optional<UserEntity> userEntity = userRepo.findById(userId);
         List<HitEntity> hitEntityList = hitRepo.findAllByUser(userEntity.get());
 
+        hitEntityList.forEach(hitRepo::save);
+
         List<HitCheckDTO> result = new ArrayList<>();
 
         if (radius != null) {
@@ -80,7 +80,6 @@ public class HitCheckServiceImpl implements HitCheckService {
     }
 
     @Override
-    @Transactional
     public void clearAllByUserId(Integer userId) {
         Optional<UserEntity> userEntity = userRepo.findById(userId);
 
