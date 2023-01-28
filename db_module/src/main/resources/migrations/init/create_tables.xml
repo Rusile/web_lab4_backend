@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.4.xsd">
+
+    <changeSet id="2023-01-10-22:00" author="rusile">
+        <sql>
+            CREATE TABLE users
+            (
+                id SERIAL,
+                login VARCHAR(255) NOT NULL,
+                password          VARCHAR(255) NOT NULL,
+                verification_code VARCHAR(64),
+                PRIMARY KEY (id)
+            );
+
+            CREATE TABLE hits
+            (
+                id SERIAL,
+                user_id INTEGER NOT NULL ,
+                x DOUBLE PRECISION NOT NULL,
+                y DOUBLE PRECISION NOT NULL,
+                r DOUBLE PRECISION NOT NULL,
+                check_date TIMESTAMP WITH TIME ZONE NOT NULL,
+                execution_time BIGINT NOT NULL,
+                status BOOLEAN NOT NULL,
+                PRIMARY KEY (id),
+                CONSTRAINT fk_user
+                    FOREIGN KEY (user_id)
+                        REFERENCES users(id)
+            );
+        </sql>
+        <rollback>
+            <sql>
+                DROP TABLE hits;
+                DROP TABLE users;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
